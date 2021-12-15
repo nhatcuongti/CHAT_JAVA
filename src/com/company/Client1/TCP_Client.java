@@ -1,6 +1,4 @@
-package com.company.Client;
-
-import com.company.Client1.Message;
+package com.company.Client1;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,16 +9,18 @@ import java.net.Socket;
 
 public class TCP_Client implements ActionListener {
 
-        JTextField usernameField, passwordField;
+        JTextArea chatArea;
+        JTextField textField;
         BufferedWriter bw;
         ObjectOutputStream oos;
         BufferedReader br;
         Socket s;
 
-    public TCP_Client() {
+    public TCP_Client(JTextArea textArea, JTextField textField) {
+        chatArea = textArea;
+        this.textField = textField;
         connectServer();
     }
-
 
 
     public void connectServer(){
@@ -67,6 +67,17 @@ public class TCP_Client implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        System.out.println(EventQueue.isDispatchThread());
 
+        String sendMessage = textField.getText();
+        textField.setText("");
+
+        try {
+            chatArea.append("Me :" + sendMessage + "\n");
+            Message message = new Message("nhatcuongti", "nhathao", sendMessage);
+            oos.writeObject(message);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 }

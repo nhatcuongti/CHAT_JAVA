@@ -1,18 +1,18 @@
-package com.company.Server;
+package com.company.Client1;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class Frame_Server extends JFrame {
+public class Frame_Client extends JFrame {
     JPanel panel = new JPanel();
     JTextArea textArea = new JTextArea();
     JTextField textField = new JTextField();
     JButton btnSend = new JButton("Send");
 
-    public Frame_Server(){
+    public Frame_Client(String tittle){
         setDefaultLookAndFeelDecorated(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setTitle("Server Chat Box");
+        setTitle(tittle);
         setContentPane(panel);
 
         panel.setLayout(new GridBagLayout());
@@ -46,19 +46,20 @@ public class Frame_Server extends JFrame {
         processChat();
     }
 
-    void processChat(){
+    private void processChat() {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                TCP_Server tcpServer = new TCP_Server(textArea, textField);
+                TCP_Client tcpClient = new TCP_Client(textArea, textField);
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
                     public void run() {
-                        btnSend.addActionListener(tcpServer);
+                        btnSend.addActionListener(tcpClient);
                     }
                 });
             }
         });
         thread.start();
+
     }
 }

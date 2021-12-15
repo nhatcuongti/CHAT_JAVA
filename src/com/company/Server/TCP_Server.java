@@ -1,5 +1,7 @@
 package com.company.Server;
 
+import com.company.Client1.Message;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -7,78 +9,66 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 
-public class TCP_Server implements ActionListener {
+public class TCP_Server {
 
         ServerSocket ss;
-        JTextArea chatArea;
-        JTextField textField;
-        BufferedWriter bw;
-        BufferedReader br;
-        Socket s;
+        ArrayList<ClientSocket> clientSockets = new ArrayList<ClientSocket>();
+        BufferedWriter bw1, bw2;
+        BufferedReader br1, br2;
 
-    public TCP_Server(JTextArea textArea, JTextField textField) {
-        System.out.println(Thread.currentThread().getName() );
-        chatArea = textArea;
-        this.textField = textField;
+    public TCP_Server() {
         connectServer();
     }
 
-
     public void connectServer(){
-            try {
-                ss = new ServerSocket(3200);
-                System.out.println("Listen to Client !!");
-                s = ss.accept();
-                System.out.println("Start Chatting to client !!");
+                try {
+                        ss = new ServerSocket(3200);
+                        while(true){
+                            System.out.println("Listen to Client !!");
+                            Socket s = ss.accept();
 
-                InputStream is = s.getInputStream();
-                br = new BufferedReader(new InputStreamReader(is));
+                            System.out.println("Start Chatting to client !!");
+                            System.out.println(s.getPort());
 
-                OutputStream os = s.getOutputStream();
-                bw = new BufferedWriter(new OutputStreamWriter(os));
 
-                Thread threadReceived = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        while (true){
-                            try {
-                                String receivedMessage = br.readLine();
-                                SwingUtilities.invokeLater(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        chatArea.append("Client : " + receivedMessage + "\n");
+
+                            InputStream is = s.getInputStream();
+                            ObjectInputStream ois = new ObjectInputStream(is);
+                            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+
+                            OutputStream os = s.getOutputStream();
+                            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+
+                            clientSockets.add(new ClientSocket(s, bw, br));
+
+                            Thread threadReceived = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    while (true){
+                                        try {
+                                            BufferedReader bufferedReader = br;
+                                            ObjectInputStream objectInputStream = ois;
+                                            while(true){
+                                                Message msg = (Message) objectInputStream.readObject();
+                                                System.out.println("Receiver : " + msg.getReceiver());
+                                                System.out.println("Sender : " + msg.getSender());
+                                                System.out.println("Message : " + msg.getMsg());
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        } catch (ClassNotFoundException e) {
+                                            e.printStackTrace();
+                                        }
                                     }
-                                });
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                                }
+                            });
+                            threadReceived.start();
                         }
-
-                    }
-                });
-                threadReceived.start();
-
-
-            } catch (IOException e) {
-                e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        System.out.println(EventQueue.isDispatchThread());
-
-        String sendMessage = textField.getText();
-        textField.setText("");
-
-        try {
-            chatArea.append("Me : " + sendMessage + "\n");
-            bw.write(sendMessage);
-            bw.newLine();
-            bw.flush();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
     }
-}
