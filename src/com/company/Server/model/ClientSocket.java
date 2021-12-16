@@ -1,4 +1,4 @@
-package com.company.Server;
+package com.company.Server.model;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

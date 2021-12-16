@@ -1,11 +1,8 @@
 package com.company.Server;
 
 import com.company.Client1.Message;
+import com.company.Server.model.ClientSocket;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
