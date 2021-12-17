@@ -1,4 +1,4 @@
-package com.company.Client;
+package com.company.Client1.View;
 
 public class Home extends javax.swing.JFrame {
 

@@ -1,4 +1,15 @@
-package com.company.Client;
+package com.company.Client1.View;
+
+import com.company.Client1.Message.RequestMessage;
+import com.company.Client1.Message.ResponseMessage;
+import com.company.Client1.TCP_Client;
+import com.company.Client1.model.User;
+import com.google.gson.Gson;
+
+import javax.swing.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 public class Register extends javax.swing.JFrame {
 
@@ -90,12 +101,43 @@ public class Register extends javax.swing.JFrame {
         pack();
     }// </editor-fold>
 
+    public static void register(TCP_Client client, String Username, String Password){
+        BufferedWriter bw = client.getBw();
+        BufferedReader br = client.getBr();
+        Gson gson = new Gson();
+        //Register
+        User user = new User(Username, Password);
+        RequestMessage rm = new RequestMessage();
+        rm.setFromUser(user);
+        rm.setType("Register");
+        String userJSON = gson.toJson(rm);
+
+
+
+        try {
+            bw.write(userJSON);
+            bw.newLine();
+            bw.flush();
+
+            String responseJSON = br.readLine();
+            ResponseMessage responseMessage = gson.fromJson(responseJSON, ResponseMessage.class);
+            System.out.println(responseMessage);
+
+            if (!responseMessage.isStatus())
+                JOptionPane.showMessageDialog(null, "Your Username is Exists !!", "Register", JOptionPane.ERROR_MESSAGE);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void saveBtnActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
+        TCP_Client client = new TCP_Client();
         String username = usernameField.getText();
         String fullName = fullNameField.getText();
         String password = passwordField.getText();
-
+        register(client, username, password);
     }
 
 

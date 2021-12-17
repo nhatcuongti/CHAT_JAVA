@@ -1,4 +1,15 @@
-package com.company.Client;
+package com.company.Client1.View;
+
+import com.company.Client1.Message.RequestMessage;
+import com.company.Client1.Message.ResponseMessage;
+import com.company.Client1.TCP_Client;
+import com.company.Client1.model.User;
+import com.google.gson.Gson;
+
+import javax.swing.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 public class Login extends javax.swing.JFrame {
 
@@ -101,6 +112,7 @@ public class Login extends javax.swing.JFrame {
         pack();
     }// </editor-fold>
 
+
     private void usernameFieldActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
     }
@@ -112,45 +124,46 @@ public class Login extends javax.swing.JFrame {
         register.setVisible(true);
     }
 
+    public void login(TCP_Client client, String username, String password){
+        BufferedWriter bw = client.getBw();
+        BufferedReader br = client.getBr();
+        Gson gson = new Gson();
+        //Register
+        User user = new User(username, password);
+        RequestMessage rm = new RequestMessage();
+        rm.setFromUser(user);
+        rm.setType("Login");
+        String userJSON = gson.toJson(rm);
+
+        try {
+            bw.write(userJSON);
+            bw.newLine();
+            bw.flush();
+
+            String responseJSON = br.readLine();
+            ResponseMessage responseMessage = gson.fromJson(responseJSON, ResponseMessage.class);
+
+            if (!responseMessage.isStatus())
+                JOptionPane.showMessageDialog(null, "Your Username or Password is invalid !!", "Login", JOptionPane.ERROR_MESSAGE);
+            else{
+                dispose();
+                Home home = new Home();
+                home.setVisible(true);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void loginBtnActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
+        TCP_Client client = new TCP_Client();
+        String username = usernameField.getText();
+        String password = passwordField.getText();
+        login(client, username, password);
     }
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Login().setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify
     private javax.swing.JLabel jLabel1;

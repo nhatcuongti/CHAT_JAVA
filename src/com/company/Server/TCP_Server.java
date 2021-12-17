@@ -89,17 +89,17 @@ public class TCP_Server {
                             Thread threadReceived = new Thread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    //Initialize
-                                    ManageUser manageUser = new ManageUser();
-                                    Gson gson = new Gson();
-                                    BufferedReader bufferedReader = br;
-                                    BufferedWriter bufferedWriter = bw;
-                                    ClientSocket clientSocket = cl;
-                                    ResponseMessage responseMessageFirst = new ResponseMessage();
+                                    try{
+                                        //Initialize
+                                        ManageUser manageUser = new ManageUser();
+                                        Gson gson = new Gson();
+                                        BufferedReader bufferedReader = br;
+                                        BufferedWriter bufferedWriter = bw;
+                                        ClientSocket clientSocket = cl;
+                                        ResponseMessage responseMessageFirst = new ResponseMessage();
 
-                                    // Take care about Type and Status on Response Message
-                                    while (true){
-                                        try {
+                                        // Take care about Type and Status on Response Message
+                                        while (true){
                                             String message = bufferedReader.readLine();
                                             RequestMessage rm = gson.fromJson(message, RequestMessage.class);
 
@@ -118,25 +118,20 @@ public class TCP_Server {
                                                 bufferedWriter.flush();
                                             }
 
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                            break;
                                         }
-                                    }
 
-                                    // Take care about ListUserOnline on ResponseMessage
-                                    userOnline.add(clientSocket);
+                                        // Take care about ListUserOnline on ResponseMessage
+                                        userOnline.add(clientSocket);
 
-                                    ArrayList<ClientSocket_ClientSide> clientSocket_clientSides = new ArrayList<>();
-                                    for (ClientSocket cs : userOnline) {
-                                        //ConvertData
-                                        ClientSocket_ClientSide clientSocket_clientSide = new ClientSocket_ClientSide(cs);
-                                        clientSocket_clientSides.add(clientSocket_clientSide);
-                                    }
+                                        ArrayList<ClientSocket_ClientSide> clientSocket_clientSides = new ArrayList<>();
+                                        for (ClientSocket cs : userOnline) {
+                                            //ConvertData
+                                            ClientSocket_ClientSide clientSocket_clientSide = new ClientSocket_ClientSide(cs);
+                                            clientSocket_clientSides.add(clientSocket_clientSide);
+                                        }
 
-                                    responseMessageFirst.setListUserOnline(clientSocket_clientSides);
+                                        responseMessageFirst.setListUserOnline(clientSocket_clientSides);
 
-                                    try {
                                         //Response One User to This Client
                                         bufferedWriter.write(gson.toJson(responseMessageFirst));
                                         bufferedWriter.newLine();
@@ -156,7 +151,6 @@ public class TCP_Server {
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
-
                                 }
                             });
                             threadReceived.start();

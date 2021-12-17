@@ -2,9 +2,11 @@ package com.company.Client1;
 
 import com.company.Client1.Message.RequestMessage;
 import com.company.Client1.Message.ResponseMessage;
+import com.company.Client1.View.Login;
 import com.company.Client1.model.User;
 import com.google.gson.Gson;
 
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -12,33 +14,12 @@ import java.net.Socket;
 
 public class Main_Client1 {
     public static void main(String[] argus){
-        TCP_Client client = new TCP_Client();
-
-        System.out.println("-------------------------------------");
-        login(client, "nhathao123", "0909845284");
-        Thread ThreadReceive = new Thread(new Runnable() {
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                try {
-                    System.out.println("New user response : ");
-                    System.out.println("---------------------------------------------");
-                    BufferedReader bufferedReader = client.getBr();
-                    String responseMsg = null;
-                    responseMsg = bufferedReader.readLine();
-                    System.out.println(responseMsg);
-                    System.out.println("---------------------------------------------");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                new Login().setVisible(true);
             }
         });
-        ThreadReceive.start();
-        System.out.println("-------------------------------------");
-
-        TCP_Client client1 = new TCP_Client();
-        System.out.println("-------------------------------------");
-        login(client1, "nhatcuongti", "0909845284");
-        System.out.println("-------------------------------------");
 
     }
 

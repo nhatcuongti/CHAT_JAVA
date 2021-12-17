@@ -1,4 +1,4 @@
-package com.company.Client;
+package com.company.Client1.View;
 
 public class Chatbox extends javax.swing.JFrame {
 
