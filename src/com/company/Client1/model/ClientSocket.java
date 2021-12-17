@@ -4,9 +4,12 @@ public class ClientSocket {
     int port;
     String Username;
 
-    public ClientSocket(com.company.Server.model.ClientSocket clientSocket) {
-        this.port = clientSocket.getSocket().getPort();
-        Username = clientSocket.getUsername();
+    public ClientSocket(int port, String username) {
+        this.port = port;
+        Username = username;
+    }
+
+    public ClientSocket() {
     }
 
     public int getPort() {
@@ -19,10 +22,7 @@ public class ClientSocket {
 
     @Override
     public String toString() {
-        return "ClientSocket_ClientSide{" +
-                "port=" + port +
-                ", Username='" + Username + '\'' +
-                '}';
+        return Username;
     }
 
     public String getUsername() {

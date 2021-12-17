@@ -101,7 +101,7 @@ public class Register extends javax.swing.JFrame {
         pack();
     }// </editor-fold>
 
-    public static void register(TCP_Client client, String Username, String Password){
+    public  void register(TCP_Client client, String Username, String Password){
         BufferedWriter bw = client.getBw();
         BufferedReader br = client.getBr();
         Gson gson = new Gson();
@@ -125,6 +125,11 @@ public class Register extends javax.swing.JFrame {
 
             if (!responseMessage.isStatus())
                 JOptionPane.showMessageDialog(null, "Your Username is Exists !!", "Register", JOptionPane.ERROR_MESSAGE);
+            else{
+                dispose();
+                Home home = new Home(responseMessage.getListUserOnline(), client.getS(), Username);
+                home.setVisible(true);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();

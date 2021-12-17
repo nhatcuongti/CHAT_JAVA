@@ -17,6 +17,9 @@ public class Main_Client1 {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
+
+                new Login().setVisible(true);
+                new Login().setVisible(true);
                 new Login().setVisible(true);
             }
         });

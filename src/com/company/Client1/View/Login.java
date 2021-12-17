@@ -147,7 +147,7 @@ public class Login extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "Your Username or Password is invalid !!", "Login", JOptionPane.ERROR_MESSAGE);
             else{
                 dispose();
-                Home home = new Home();
+                Home home = new Home(responseMessage.getListUserOnline(), client.getS(), username);
                 home.setVisible(true);
             }
 

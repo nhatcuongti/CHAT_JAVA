@@ -11,10 +11,33 @@ public class ResponseMessage implements Serializable {
     boolean status; // Set if type = "Login" or "Register"
     ArrayList<ClientSocket> listUserOnline = new ArrayList<>();
     String Message;
-    User fromUser;
+    ClientSocket fromUser;
+    ClientSocket toUser;
 
-    public ResponseMessage() {
-        fromUser = new User();
+    public ClientSocket getToUser() {
+        return toUser;
+    }
+
+    public void setToUser(ClientSocket toUser) {
+        this.toUser = toUser;
+    }
+
+    ClientSocket newUser;
+
+    public ClientSocket getNewUser() {
+        return newUser;
+    }
+
+    public void setNewUser(ClientSocket newUser) {
+        this.newUser = newUser;
+    }
+
+    public ClientSocket getFromUser() {
+        return fromUser;
+    }
+
+    public void setFromUser(ClientSocket fromUser) {
+        this.fromUser = fromUser;
     }
 
     @Override
@@ -25,6 +48,8 @@ public class ResponseMessage implements Serializable {
                 ", listUserOnline=" + listUserOnline +
                 ", Message='" + Message + '\'' +
                 ", fromUser=" + fromUser +
+                ", toUser=" + toUser +
+                ", newUser=" + newUser +
                 '}';
     }
 
@@ -60,11 +85,5 @@ public class ResponseMessage implements Serializable {
         Message = message;
     }
 
-    public User getFromUser() {
-        return fromUser;
-    }
 
-    public void setFromUser(User fromUser) {
-        this.fromUser = fromUser;
-    }
 }

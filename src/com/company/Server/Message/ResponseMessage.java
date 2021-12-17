@@ -1,5 +1,6 @@
 package com.company.Server.Message;
 
+
 import com.company.Server.model.ClientSocket_ClientSide;
 import com.company.Server.model.User;
 
@@ -12,6 +13,24 @@ public class ResponseMessage implements Serializable {
     ArrayList<ClientSocket_ClientSide> listUserOnline = new ArrayList<ClientSocket_ClientSide>();
     String Message;
     User fromUser;
+    ClientSocket_ClientSide toUser;
+    ClientSocket_ClientSide newUser;
+
+    public ClientSocket_ClientSide getNewUser() {
+        return newUser;
+    }
+
+    public void setNewUser(ClientSocket_ClientSide newUser) {
+        this.newUser = newUser;
+    }
+
+    public ClientSocket_ClientSide getToUser() {
+        return toUser;
+    }
+
+    public void setToUser(ClientSocket_ClientSide toUser) {
+        this.toUser = toUser;
+    }
 
     public ResponseMessage() {
         fromUser = new User();

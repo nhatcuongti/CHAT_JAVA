@@ -133,6 +133,7 @@ public class TCP_Server {
                                         responseMessageFirst.setListUserOnline(clientSocket_clientSides);
 
                                         //Response One User to This Client
+                                        responseMessageFirst.setType("OnlineUserList");
                                         bufferedWriter.write(gson.toJson(responseMessageFirst));
                                         bufferedWriter.newLine();
                                         bufferedWriter.flush();
@@ -142,11 +143,38 @@ public class TCP_Server {
                                             if (cs.getSocket().getPort() == clientSocket.getSocket().getPort())
                                                 continue;
                                             BufferedWriter bufferedWriter1 = new BufferedWriter(new OutputStreamWriter(cs.getSocket().getOutputStream()));
-                                            responseMessageFirst.setType("NewUser");
 
-                                            bufferedWriter1.write(gson.toJson(responseMessageFirst));
+                                            ResponseMessage newUserResponseMessage = new ResponseMessage();
+                                            newUserResponseMessage.setType("NewUser");
+                                            ClientSocket_ClientSide newUser = new ClientSocket_ClientSide(clientSocket);
+                                            newUserResponseMessage.setNewUser(newUser);
+
+                                            bufferedWriter1.write(gson.toJson(newUserResponseMessage));
                                             bufferedWriter1.newLine();
                                             bufferedWriter1.flush();
+                                        }
+
+                                        // Listen to Send chat
+                                        while (true){
+                                            String msg = bufferedReader.readLine();
+                                            ResponseMessage responseMessage = gson.fromJson(msg, ResponseMessage.class);
+
+                                            //Get MSG and ClientSocket
+                                            ClientSocket_ClientSide clientReceived = responseMessage.getToUser();
+
+                                            System.out.println(clientReceived);
+                                            for (ClientSocket user : userOnline) {
+                                                System.out.println("-------------------------");
+                                                System.out.println("Server-Side : ");
+                                                System.out.println(user.getUsername() + "-" + user.getSocket().getPort());
+                                                System.out.println("-------------------------");
+                                                if (clientReceived.getPort() == user.getSocket().getPort()) {
+                                                    BufferedWriter bufferWriterUser = new BufferedWriter(new OutputStreamWriter(user.getSocket().getOutputStream()));
+                                                    bufferWriterUser.write(msg);
+                                                    bufferWriterUser.newLine();
+                                                    bufferWriterUser.flush();
+                                                }
+                                            }
                                         }
                                     } catch (IOException e) {
                                         e.printStackTrace();

@@ -1,11 +1,90 @@
 package com.company.Client1.View;
 
-public class Home extends javax.swing.JFrame {
+
+import com.company.Client1.Message.ResponseMessage;
+import com.company.Client1.View.Panel.ChatPanel;
+import com.company.Client1.View.Panel.TopPanel;
+import com.company.Client1.model.ClientSocket;
+import com.google.gson.Gson;
+
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import java.awt.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.util.ArrayList;
+
+public class Home extends javax.swing.JFrame  {
 
     /**
      * Creates new form Home
      */
-    public Home() {
+    public Home(ArrayList<ClientSocket> onlineUser, Socket currentSocket, String username) {
+        this.onlineUser = onlineUser;
+        this.currentSocket = currentSocket;
+        this.currenUser = username;
+
+        listUser = new String[onlineUser.size()];
+        Thread uploadListThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Gson gson = new Gson();
+                    while(true){
+                        BufferedReader br = new BufferedReader(new InputStreamReader(currentSocket.getInputStream()));
+                        String msg = br.readLine();
+                        ResponseMessage responseMessage = gson.fromJson(msg, ResponseMessage.class);
+
+                        //Assign List
+
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (responseMessage.getType().equals("NewUser")){
+                                    ClientSocket user = responseMessage.getNewUser();
+                                    dlm.addElement(user.getUsername());
+
+                                    ChatPanel newChatPanel = new ChatPanel(user, currentSocket, currenUser);
+                                    chatPanelList.add(newChatPanel);
+
+                                    centerPanel.add(newChatPanel, user.getUsername());
+                                    System.out.println("response message : " + responseMessage);
+                                    System.out.println("New User : " + user);
+                                    listOnlineUser.setModel(dlm);
+                                }
+                                else if (responseMessage.getType().equals("Chat")){
+                                    System.out.println("-------------------------------");
+                                    System.out.println("Current User : " + currenUser);
+                                    System.out.println("Received" );
+                                    System.out.println(responseMessage);
+                                    System.out.println("-------------------------------");
+                                    //Bước 1 : Tìm FromClientSocket
+                                    ClientSocket fromClientSocket = responseMessage.getFromUser();
+                                    //Bước 2 : Chọn phòng ChatPannel trùng với FromClientSocket
+                                    for (ChatPanel chatRoom : chatPanelList)
+                                        if (chatRoom.getToUser().getUsername().equals(fromClientSocket.getUsername()))
+                                            chatRoom.setMessage(responseMessage.getMessage());
+                                }
+                            }
+                        });
+
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        uploadListThread.start();
+        int i = 0;
+        for (ClientSocket user : onlineUser)
+            listUser[i++] = user.toString();
+        initComponents();
+    }
+
+    public Home(){
         initComponents();
     }
 
@@ -18,163 +97,91 @@ public class Home extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jLabel2 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
+        setDefaultLookAndFeelDecorated(true);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout());
+        setContentPane(mainPanel);
 
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 36)); // NOI18N
-        jLabel1.setText("Hi, Hao");
+        mainPanel.add(topPanel(), BorderLayout.PAGE_START);
+        mainPanel.add(westPanel(), BorderLayout.WEST);
+        mainPanel.add(centerPanel(), BorderLayout.CENTER);
 
-        jButton1.setText("Chat");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel2.setText("Username");
-
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
-            }
-        });
-
-        jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel3.setText("Name");
-
-        jTextField2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField2ActionPerformed(evt);
-            }
-        });
-
-        jButton2.setText("Log out");
-
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
-        jScrollPane1.setViewportView(jList1);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addGap(27, 27, 27)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jScrollPane1)
-                                        .addGroup(layout.createSequentialGroup()
-                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                        .addGroup(layout.createSequentialGroup()
-                                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                        .addComponent(jLabel2))
-                                                                .addGap(36, 36, 36)
-                                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                        .addComponent(jLabel3))))
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 47, Short.MAX_VALUE)
-                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addGroup(layout.createSequentialGroup()
-                                                .addComponent(jLabel3)
-                                                .addGap(18, 18, 18)
-                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                        .addGroup(layout.createSequentialGroup()
-                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                                        .addComponent(jLabel1)
-                                                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                                .addGap(39, 39, 39)
-                                                .addComponent(jLabel2)
-                                                .addGap(18, 18, 18)
-                                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addGap(62, 62, 62)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+        mainPanel.setPreferredSize(new Dimension(1200, 600));
 
         pack();
     }// </editor-fold>
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+    private JPanel topPanel() {
+        return new TopPanel(currenUser);
     }
 
-    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
-    }
+    private JPanel westPanel(){
+        westPanel = new JPanel();
+        westPanel.setLayout(new BorderLayout());
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
-    }
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Home().setVisible(true);
+        listOnlineUser = new JList();
+        listOnlineUser.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                jList1ActionPerformed(e);
             }
         });
+
+        dlm = new DefaultListModel();
+        for (ClientSocket user : onlineUser)
+            dlm.addElement(user.getUsername());
+
+        listOnlineUser.setModel(dlm);
+        JScrollPane sp = new JScrollPane(listOnlineUser);
+
+        westPanel.add(sp);
+        return westPanel;
     }
 
+    private JPanel centerPanel(){
+        centerPanel = new JPanel();
+        cardLayout = new CardLayout();
+        centerPanel.setLayout(cardLayout);
+        // Initialize ChatPanel for every user online
+        for (ClientSocket toUser : onlineUser) {
+            ChatPanel chatPanel = new ChatPanel(toUser, currentSocket, currenUser);
+            chatPanelList.add(chatPanel);
+            centerPanel.add(chatPanel, toUser.getUsername());
+        }
+
+        return centerPanel;
+    }
+
+    private ClientSocket getClientSocket(String username){
+        for (ClientSocket user : onlineUser)
+            if (user.getUsername().equals(username))
+                return user;
+        return null;
+    }
+
+    private void jList1ActionPerformed(ListSelectionEvent evt) {
+        // TODO add your handling code here:
+        String username = listOnlineUser.getSelectedValue();
+        cardLayout.show(centerPanel, username);
+    }
+
+
     // Variables declaration - do not modify
-    private javax.swing.JButton jButton1;
+    private JPanel mainPanel, topPanel, westPanel, centerPanel;
     private javax.swing.JButton jButton2;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JList<String> jList1;
+    private JList<String> listOnlineUser;
+    private DefaultListModel<String> dlm;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
+
+    private ArrayList<ChatPanel> chatPanelList =new ArrayList<>();
+    CardLayout cardLayout;
+    private ArrayList<ClientSocket>  onlineUser = new ArrayList<>();
+    private Socket currentSocket;
+    String[] listUser = null;
+    String currenUser;
     // End of variables declaration
 }
