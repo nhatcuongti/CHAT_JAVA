@@ -5,6 +5,7 @@ package com.company.Server;
 import com.company.Server.Message.RequestMessage;
 import com.company.Server.Message.ResponseMessage;
 import com.company.Server.model.ClientSocket;
+import com.company.Server.model.ClientSocket_ClientSide;
 import com.company.Server.model.User;
 import com.company.Server.utils.FileManager;
 import com.company.Server.utils.ManageUser;
@@ -26,64 +27,42 @@ public class TCP_Server {
         connectServer();
     }
 
-    public void registerManagement(RequestMessage rm, BufferedReader bufferedReader, BufferedWriter bufferedWriter, ClientSocket clientSocket){
+    public Boolean registerManagement(RequestMessage rm, ResponseMessage responseMessage, ClientSocket clientSocket){
         ManageUser manageUser = new ManageUser();
-        Gson gson = new Gson();
         User user = rm.getFromUser();
         boolean isSuccessfull = manageUser.registerData(user);
 
         FileManager fm = new FileManager("file.txt");
-        ArrayList<User> users = fm.getData();
 
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setListUserOnline(users);
         responseMessage.setType("Register");
+
+
         if (isSuccessfull) {
             responseMessage.setStatus(true);
             clientSocket.setUsername(user.getUsername());
-        }
-        else{
-            responseMessage.setStatus(false);
+            return true;
         }
 
-        System.out.println(gson.toJson(responseMessage));
-        try {
-            bufferedWriter.write(gson.toJson(responseMessage));
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        return false;
     }
 
-    public void loginManagement(RequestMessage rm, BufferedReader bufferedReader, BufferedWriter bufferedWriter, ClientSocket clientSocket){
+    public Boolean loginManagement(RequestMessage rm, ResponseMessage responseMessage, ClientSocket clientSocket){
         ManageUser manageUser = new ManageUser();
-        Gson gson = new Gson();
         User user = rm.getFromUser();
         boolean isSuccessfull = manageUser.loginData(user);
 
         FileManager fm = new FileManager("file.txt");
-        ArrayList<User> users = fm.getData();
 
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setListUserOnline(users);
         responseMessage.setType("Login");
+
+
         if (isSuccessfull) {
             responseMessage.setStatus(true);
             clientSocket.setUsername(user.getUsername());
-        }
-        else{
-            responseMessage.setStatus(false);
+            return true;
         }
 
-        System.out.println(gson.toJson(responseMessage));
-        try {
-            bufferedWriter.write(gson.toJson(responseMessage));
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        return false;
     }
 
     public void connectServer(){
@@ -93,7 +72,7 @@ public class TCP_Server {
                         while(true){
                             System.out.println("Listen to Client !!");
                             Socket s = ss.accept();
-                            ClientSocket clientSocket = new ClientSocket(s);
+                            ClientSocket cl = new ClientSocket(s);
 
                             System.out.println("Start Chatting to client !!");
                             System.out.println(s.getPort());
@@ -110,28 +89,74 @@ public class TCP_Server {
                             Thread threadReceived = new Thread(new Runnable() {
                                 @Override
                                 public void run() {
+                                    //Initialize
+                                    ManageUser manageUser = new ManageUser();
+                                    Gson gson = new Gson();
+                                    BufferedReader bufferedReader = br;
+                                    BufferedWriter bufferedWriter = bw;
+                                    ClientSocket clientSocket = cl;
+                                    ResponseMessage responseMessageFirst = new ResponseMessage();
+
+                                    // Take care about Type and Status on Response Message
                                     while (true){
                                         try {
-                                            //Initialize
-                                            ManageUser manageUser = new ManageUser();
-                                            Gson gson = new Gson();
-                                            BufferedReader bufferedReader = br;
-                                            BufferedWriter bufferedWriter = bw;
                                             String message = bufferedReader.readLine();
                                             RequestMessage rm = gson.fromJson(message, RequestMessage.class);
 
                                             //Register
+                                            Boolean isSuccessful = false;
                                             if (rm.getType().equals("Register"))
-                                                registerManagement(rm, bufferedReader, bufferedWriter, clientSocket);
+                                                isSuccessful = registerManagement(rm, responseMessageFirst, clientSocket);
                                             else if (rm.getType().equals("Login"))
-                                                loginManagement(rm, bufferedReader, bufferedWriter, clientSocket);
+                                                isSuccessful = loginManagement(rm, responseMessageFirst, clientSocket);
 
-                                            System.out.println(rm);
+                                            if (isSuccessful)
+                                                break;
+                                            else{
+                                                bufferedWriter.write(gson.toJson(responseMessageFirst));
+                                                bufferedWriter.newLine();
+                                                bufferedWriter.flush();
+                                            }
+
                                         } catch (IOException e) {
                                             e.printStackTrace();
                                             break;
                                         }
                                     }
+
+                                    // Take care about ListUserOnline on ResponseMessage
+                                    userOnline.add(clientSocket);
+
+                                    ArrayList<ClientSocket_ClientSide> clientSocket_clientSides = new ArrayList<>();
+                                    for (ClientSocket cs : userOnline) {
+                                        //ConvertData
+                                        ClientSocket_ClientSide clientSocket_clientSide = new ClientSocket_ClientSide(cs);
+                                        clientSocket_clientSides.add(clientSocket_clientSide);
+                                    }
+
+                                    responseMessageFirst.setListUserOnline(clientSocket_clientSides);
+
+                                    try {
+                                        //Response One User to This Client
+                                        bufferedWriter.write(gson.toJson(responseMessageFirst));
+                                        bufferedWriter.newLine();
+                                        bufferedWriter.flush();
+
+                                        //Response All User
+                                        for (ClientSocket cs : userOnline){
+                                            if (cs.getSocket().getPort() == clientSocket.getSocket().getPort())
+                                                continue;
+                                            BufferedWriter bufferedWriter1 = new BufferedWriter(new OutputStreamWriter(cs.getSocket().getOutputStream()));
+                                            responseMessageFirst.setType("NewUser");
+
+                                            bufferedWriter1.write(gson.toJson(responseMessageFirst));
+                                            bufferedWriter1.newLine();
+                                            bufferedWriter1.flush();
+                                        }
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+
                                 }
                             });
                             threadReceived.start();

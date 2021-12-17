@@ -1,5 +1,6 @@
 package com.company.Server.Message;
 
+import com.company.Server.model.ClientSocket_ClientSide;
 import com.company.Server.model.User;
 
 import java.io.Serializable;
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 public class ResponseMessage implements Serializable {
     String type;
     boolean status; // Set if type = "Login" or "Register"
-    ArrayList<User> listUserOnline = new ArrayList<>();
+    ArrayList<ClientSocket_ClientSide> listUserOnline = new ArrayList<ClientSocket_ClientSide>();
     String Message;
     User fromUser;
 
@@ -32,11 +33,11 @@ public class ResponseMessage implements Serializable {
         this.status = status;
     }
 
-    public ArrayList<User> getListUserOnline() {
+    public ArrayList<ClientSocket_ClientSide> getListUserOnline() {
         return listUserOnline;
     }
 
-    public void setListUserOnline(ArrayList<User> listUserOnline) {
+    public void setListUserOnline(ArrayList<ClientSocket_ClientSide> listUserOnline) {
         this.listUserOnline = listUserOnline;
     }
 

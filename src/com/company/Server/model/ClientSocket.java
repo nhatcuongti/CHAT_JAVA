@@ -10,7 +10,7 @@ public class ClientSocket {
 
     public ClientSocket(Socket socket) {
         this.socket = socket;
-        Username = "";
+        Username ="";
     }
 
     public Socket getSocket() {
