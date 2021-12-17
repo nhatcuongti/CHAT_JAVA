@@ -1,9 +1,6 @@
 package com.company.Client;
 
-import com.company.Client1.Message;
-
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;

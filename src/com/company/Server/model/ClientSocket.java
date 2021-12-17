@@ -6,24 +6,26 @@ import java.net.Socket;
 
 public class ClientSocket {
     Socket socket;
-    BufferedWriter bw;
-    BufferedReader br;
+    String Username;
 
-    public ClientSocket(Socket socket, BufferedWriter bw, BufferedReader br) {
+    public ClientSocket(Socket socket) {
         this.socket = socket;
-        this.bw = bw;
-        this.br = br;
+        Username = "";
     }
 
     public Socket getSocket() {
         return socket;
     }
 
-    public BufferedWriter getBw() {
-        return bw;
+    public void setSocket(Socket socket) {
+        this.socket = socket;
     }
 
-    public BufferedReader getBr() {
-        return br;
+    public String getUsername() {
+        return Username;
+    }
+
+    public void setUsername(String username) {
+        Username = username;
     }
 }

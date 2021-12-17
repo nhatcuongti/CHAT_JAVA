@@ -1,7 +1,5 @@
-package com.company.Server.Message;
-
-import com.company.Server.model.SocketData;
-import com.company.Server.model.User;
+package com.company.Client1.Message;
+import com.company.Client1.model.User;
 
 import java.io.Serializable;
 
