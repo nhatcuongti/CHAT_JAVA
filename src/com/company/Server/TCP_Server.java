@@ -230,9 +230,10 @@ public class TCP_Server {
                                         for (ClientSocket user : userOnline){
                                             String rmdMsg = gson.toJson(responseMessageDelete);
                                             try {
-                                                bufferedWriter.write(rmdMsg);
-                                                bufferedWriter.newLine();
-                                                bufferedWriter.newLine();
+                                                BufferedWriter bufferedWriterDelete = new BufferedWriter(new OutputStreamWriter(user.getSocket().getOutputStream()));
+                                                bufferedWriterDelete.write(rmdMsg);
+                                                bufferedWriterDelete.newLine();
+                                                bufferedWriterDelete.flush();
                                             } catch (IOException ex) {
                                                 ex.printStackTrace();
                                             }

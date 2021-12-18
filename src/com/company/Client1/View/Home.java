@@ -31,6 +31,12 @@ public class Home extends javax.swing.JFrame implements ActionListener {
         this.currenUser = username;
 
         listUser = new String[onlineUser.size()];
+
+        int i = 0;
+        for (ClientSocket user : onlineUser)
+            listUser[i++] = user.toString();
+        initComponents();
+
         Thread uploadListThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -72,9 +78,11 @@ public class Home extends javax.swing.JFrame implements ActionListener {
                                 }
                             }
 
+                            System.out.println("Inedx Remove : " + indexRemove);
                             dlm.remove(indexRemove);
                             cardLayout.removeLayoutComponent(chatPanelList.get(indexRemove));
                             chatPanelList.remove(indexRemove);
+                            listOnlineUser.setModel(dlm);
                         }
                         else if (responseMessage.getType().equals("Chat") || responseMessage.getType().equals("File")){
                             System.out.println("-------------------------------");
@@ -101,10 +109,7 @@ public class Home extends javax.swing.JFrame implements ActionListener {
             }
         });
         uploadListThread.start();
-        int i = 0;
-        for (ClientSocket user : onlineUser)
-            listUser[i++] = user.toString();
-        initComponents();
+
     }
 
     public Home(){
