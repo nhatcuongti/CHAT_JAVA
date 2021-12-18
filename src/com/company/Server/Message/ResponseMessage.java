@@ -4,6 +4,7 @@ package com.company.Server.Message;
 import com.company.Server.model.ClientSocket_ClientSide;
 import com.company.Server.model.User;
 
+import java.awt.event.ActionListener;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -15,6 +16,15 @@ public class ResponseMessage implements Serializable {
     User fromUser;
     ClientSocket_ClientSide toUser;
     ClientSocket_ClientSide newUser;
+    ClientSocket_ClientSide deleteUser;
+
+    public ClientSocket_ClientSide getDeleteUser() {
+        return deleteUser;
+    }
+
+    public void setDeleteUser(ClientSocket_ClientSide deleteUser) {
+        this.deleteUser = deleteUser;
+    }
 
     public ClientSocket_ClientSide getNewUser() {
         return newUser;

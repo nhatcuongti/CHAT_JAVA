@@ -5,8 +5,7 @@ import com.company.Client1.model.ClientSocket;
 import com.google.gson.Gson;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
+import javax.swing.text.*;
 import java.awt.*;
 import java.io.*;
 import java.net.Socket;
@@ -52,6 +51,7 @@ public class ChatPanel extends javax.swing.JPanel {
         setLayout(new java.awt.BorderLayout());
 
         jTextPane1.setEditable(false);
+        jTextPane1.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 50));
         jScrollPane1.setViewportView(jTextPane1);
 
         add(jScrollPane1, java.awt.BorderLayout.CENTER);
@@ -137,6 +137,8 @@ public class ChatPanel extends javax.swing.JPanel {
         );
 
         add(jPanel2, java.awt.BorderLayout.PAGE_START);
+        jPanel2.setBackground(Color.white);
+
     }// </editor-fold>
 
     private void sendBtnActionPerformed(java.awt.event.ActionEvent evt) {
@@ -221,13 +223,24 @@ public class ChatPanel extends javax.swing.JPanel {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    Document doc = jTextPane1.getDocument();
+                    StyledDocument doc = jTextPane1.getStyledDocument();
+
+                    //Define keyword attribute
+                    SimpleAttributeSet keyword = new SimpleAttributeSet();
                     try {
                         textArea.setText("");
                         String username = "Me\n";
                         String newMessage = message + "\n";
-                        doc.insertString(doc.getLength(), username, null);
-                        doc.insertString(doc.getLength(), newMessage, null);
+
+                        StyleConstants.setBold(keyword, true);
+                        StyleConstants.setAlignment(keyword, StyleConstants.ALIGN_LEFT);
+                        StyleConstants.setFontSize(keyword, 25);
+                        jTextPane1.setParagraphAttributes(keyword, true);
+                        doc.insertString(doc.getLength(), username, keyword);
+
+                        StyleConstants.setBackground(keyword, new Color(0x2980b9));
+                        StyleConstants.setForeground(keyword, Color.WHITE);
+                        doc.insertString(doc.getLength(), newMessage, keyword);
                     } catch (BadLocationException e) {
                         e.printStackTrace();
                     }
@@ -247,12 +260,25 @@ public class ChatPanel extends javax.swing.JPanel {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                Document doc = jTextPane1.getDocument();
+                StyledDocument doc = jTextPane1.getStyledDocument();
+
+                //Define keyword atribute
+                SimpleAttributeSet keyword = new SimpleAttributeSet();
+
                 String username = toUser.getUsername() + "\n";
                 String newMessage = message + "\n";
                 try {
-                    doc.insertString(doc.getLength(), username, null);
-                    doc.insertString(doc.getLength(), newMessage, null);
+
+                    StyleConstants.setBold(keyword, true);
+                    StyleConstants.setAlignment(keyword, StyleConstants.ALIGN_RIGHT);
+                    StyleConstants.setFontSize(keyword, 25);
+                    jTextPane1.setParagraphAttributes(keyword, true);
+                    doc.insertString(doc.getLength(), username, keyword);
+
+                    StyleConstants.setBold(keyword, false);
+                    StyleConstants.setBackground(keyword, new Color(0xbdc3c7));
+
+                    doc.insertString(doc.getLength(), newMessage, keyword);
                 } catch (BadLocationException e) {
                     e.printStackTrace();
                 }
@@ -264,34 +290,41 @@ public class ChatPanel extends javax.swing.JPanel {
         //Find file Name
         try {
             //Get FileNameLength
-            System.out.println("Before");
             DataInputStream dis = new DataInputStream(currentSocket.getInputStream());
             int fileNameLength = dis.readInt();
-            System.out.println("File Name Length : " + fileNameLength);
 
             byte[] fileNameBytes = new byte[fileNameLength];
             dis.readFully(fileNameBytes, 0, fileNameLength);
 
             String fileName = new String(fileNameBytes);
-            System.out.println("FileName : " + fileName);
             //        Show dialog
             int result = JOptionPane.showConfirmDialog(null,
-                    "Do you want to receive file : " + fileName + " from " + toUser.getUsername(),
-                    "Authenticate",
+                    "Do you want to download file : " + fileName + " from " + toUser.getUsername(),
+                    "Download File",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE);
 
             if (result == JOptionPane.YES_OPTION){
-                //Get content Length File
-                int fileContentLength = dis.readInt();
-                byte[] fileContentBytes = new byte[fileContentLength];
-                dis.readFully(fileContentBytes, 0, fileContentLength);
+                File Directory;
+                JFileChooser jFileChooser = new JFileChooser();
+                jFileChooser.setDialogTitle("Choose a Folder to Download");
+                jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-                //Write file
-                File fileToDownload = new File(fileName);
-                FileOutputStream fos = new FileOutputStream(fileToDownload);
-                fos.write(fileContentBytes);
-                fos.close();
+                if (jFileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                    Directory = jFileChooser.getSelectedFile();
+                    fileName = Directory + fileName;
+
+                    //Get content Length File
+                    int fileContentLength = dis.readInt();
+                    byte[] fileContentBytes = new byte[fileContentLength];
+                    dis.readFully(fileContentBytes, 0, fileContentLength);
+
+                    //Write file
+                    File fileToDownload = new File(fileName);
+                    FileOutputStream fos = new FileOutputStream(fileToDownload);
+                    fos.write(fileContentBytes);
+                    fos.close();
+                }
             }
 
         } catch (IOException e) {

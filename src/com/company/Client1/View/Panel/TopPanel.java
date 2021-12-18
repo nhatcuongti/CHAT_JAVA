@@ -1,13 +1,19 @@
 package com.company.Client1.View.Panel;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.Socket;
+
 public class TopPanel extends javax.swing.JPanel {
 
     /**
      * Creates new form NewJPanel1
      * @param currenUser
      */
-    public TopPanel(String currenUser) {
+    public TopPanel(String currenUser, ActionListener actionListener) {
         this.curentUser = currenUser;
+        this.actionListener = actionListener;
         initComponents();
     }
 
@@ -28,6 +34,8 @@ public class TopPanel extends javax.swing.JPanel {
 
         jButton1.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         jButton1.setText("Log out");
+
+        jButton1.addActionListener(actionListener);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -51,10 +59,22 @@ public class TopPanel extends javax.swing.JPanel {
         );
     }// </editor-fold>
 
+    public void logOutActionListener(ActionEvent e){
+        try {
+            currentSocket.close();
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+    }
+
 
     // Variables declaration - do not modify
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private String curentUser;
+    private Socket currentSocket;
+    private ActionListener actionListener;
     // End of variables declaration
 }

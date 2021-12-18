@@ -13,6 +13,15 @@ public class ResponseMessage implements Serializable {
     String Message;
     ClientSocket fromUser;
     ClientSocket toUser;
+    ClientSocket deleteUser;
+
+    public ClientSocket getDeleteUser() {
+        return deleteUser;
+    }
+
+    public void setDeleteUser(ClientSocket deleteUser) {
+        this.deleteUser = deleteUser;
+    }
 
     public ClientSocket getToUser() {
         return toUser;

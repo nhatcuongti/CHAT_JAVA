@@ -11,6 +11,8 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -18,7 +20,7 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.ArrayList;
 
-public class Home extends javax.swing.JFrame  {
+public class Home extends javax.swing.JFrame implements ActionListener {
 
     /**
      * Creates new form Home
@@ -53,8 +55,26 @@ public class Home extends javax.swing.JFrame  {
                                 @Override
                                 public void run() {
                                     listOnlineUser.setModel(dlm);
+                                    if (dlm.size() == 1)
+                                        cardLayout.show(centerPanel, user.getUsername());
                                 }
                             });
+                        }
+                        else if (responseMessage.getType().equals("Delete")){
+                            ClientSocket deleteUser = responseMessage.getDeleteUser();
+
+                            int indexRemove = 0;
+                            for (int i = 0; i < dlm.size(); i++){
+                                String checkuser = dlm.getElementAt(i);
+                                if (checkuser.equals(deleteUser.getUsername())){
+                                    indexRemove = i;
+                                    break;
+                                }
+                            }
+
+                            dlm.remove(indexRemove);
+                            cardLayout.removeLayoutComponent(chatPanelList.get(indexRemove));
+                            chatPanelList.remove(indexRemove);
                         }
                         else if (responseMessage.getType().equals("Chat") || responseMessage.getType().equals("File")){
                             System.out.println("-------------------------------");
@@ -111,13 +131,13 @@ public class Home extends javax.swing.JFrame  {
         mainPanel.add(westPanel(), BorderLayout.WEST);
         mainPanel.add(centerPanel(), BorderLayout.CENTER);
 
-        mainPanel.setPreferredSize(new Dimension(1200, 600));
+        mainPanel.setPreferredSize(new Dimension(1000, 600));
 
         pack();
     }// </editor-fold>
 
     private JPanel topPanel() {
-        return new TopPanel(currenUser);
+        return new TopPanel(currenUser, this);
     }
 
     private JPanel westPanel(){
@@ -167,6 +187,7 @@ public class Home extends javax.swing.JFrame  {
     private void jList1ActionPerformed(ListSelectionEvent evt) {
         // TODO add your handling code here:
         String username = listOnlineUser.getSelectedValue();
+        System.out.println("Current User : " + username);
         cardLayout.show(centerPanel, username);
     }
 
@@ -186,5 +207,21 @@ public class Home extends javax.swing.JFrame  {
     private Socket currentSocket;
     String[] listUser = null;
     String currenUser;
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        try {
+            currentSocket.close();
+            dispose();
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    new Login().setVisible(true);
+                }
+            });
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
     // End of variables declaration
 }

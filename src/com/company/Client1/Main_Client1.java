@@ -20,6 +20,7 @@ public class Main_Client1 {
 
                 new Login().setVisible(true);
                 new Login().setVisible(true);
+                new Login().setVisible(true);
             }
         });
 

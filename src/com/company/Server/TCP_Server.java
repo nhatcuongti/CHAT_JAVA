@@ -90,16 +90,15 @@ public class TCP_Server {
                             Thread threadReceived = new Thread(new Runnable() {
                                 @Override
                                 public void run() {
+                                    //Initialize
+                                    ManageUser manageUser = new ManageUser();
+                                    Gson gson = new Gson();
+                                    BufferedReader bufferedReader = br;
+                                    BufferedWriter bufferedWriter = bw;
+                                    ClientSocket clientSocket = cl;
+                                    ResponseMessage responseMessageFirst = new ResponseMessage();
+                                    Socket socket = s;
                                     try{
-                                        //Initialize
-                                        ManageUser manageUser = new ManageUser();
-                                        Gson gson = new Gson();
-                                        BufferedReader bufferedReader = br;
-                                        BufferedWriter bufferedWriter = bw;
-                                        ClientSocket clientSocket = cl;
-                                        ResponseMessage responseMessageFirst = new ResponseMessage();
-                                        Socket socket = s;
-
                                         // Take care about Type and Status on Response Message
                                         while (true){
                                             String message = bufferedReader.readLine();
@@ -123,7 +122,6 @@ public class TCP_Server {
                                         }
 
                                         // Take care about ListUserOnline on ResponseMessage
-                                        userOnline.add(clientSocket);
 
                                         ArrayList<ClientSocket_ClientSide> clientSocket_clientSides = new ArrayList<>();
                                         for (ClientSocket cs : userOnline) {
@@ -140,6 +138,7 @@ public class TCP_Server {
                                         bufferedWriter.newLine();
                                         bufferedWriter.flush();
 
+                                        userOnline.add(clientSocket);
                                         //Response All User
                                         for (ClientSocket cs : userOnline){
                                             if (cs.getSocket().getPort() == clientSocket.getSocket().getPort())
@@ -218,8 +217,27 @@ public class TCP_Server {
                                             }
 
                                         }
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
+                                    } catch (Exception e) {
+                                        ResponseMessage responseMessageDelete = new ResponseMessage();
+                                        responseMessageDelete.setType("Delete");
+                                        ClientSocket_ClientSide clientRemove = new ClientSocket_ClientSide(clientSocket);
+                                        responseMessageDelete.setDeleteUser(clientRemove);
+
+                                        System.out.println("Before Remove : " + userOnline.size());
+                                        userOnline.remove(clientSocket);
+                                        System.out.println("After Remove : " + userOnline.size());
+
+                                        for (ClientSocket user : userOnline){
+                                            String rmdMsg = gson.toJson(responseMessageDelete);
+                                            try {
+                                                bufferedWriter.write(rmdMsg);
+                                                bufferedWriter.newLine();
+                                                bufferedWriter.newLine();
+                                            } catch (IOException ex) {
+                                                ex.printStackTrace();
+                                            }
+
+                                        }
                                     }
                                 }
                             });
