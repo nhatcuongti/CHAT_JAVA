@@ -12,6 +12,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
@@ -33,47 +34,49 @@ public class Home extends javax.swing.JFrame  {
             public void run() {
                 try {
                     Gson gson = new Gson();
+                    BufferedReader br = new BufferedReader(new InputStreamReader(currentSocket.getInputStream()));
+                    DataInputStream dis = new DataInputStream(currentSocket.getInputStream());
                     while(true){
-                        BufferedReader br = new BufferedReader(new InputStreamReader(currentSocket.getInputStream()));
                         String msg = br.readLine();
                         ResponseMessage responseMessage = gson.fromJson(msg, ResponseMessage.class);
+                        if (responseMessage.getType().equals("NewUser")){
+                            ClientSocket user = responseMessage.getNewUser();
+                            dlm.addElement(user.getUsername());
 
-                        //Assign List
+                            ChatPanel newChatPanel = new ChatPanel(user, currentSocket, currenUser);
+                            chatPanelList.add(newChatPanel);
 
-                        SwingUtilities.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (responseMessage.getType().equals("NewUser")){
-                                    ClientSocket user = responseMessage.getNewUser();
-                                    dlm.addElement(user.getUsername());
-
-                                    ChatPanel newChatPanel = new ChatPanel(user, currentSocket, currenUser);
-                                    chatPanelList.add(newChatPanel);
-
-                                    centerPanel.add(newChatPanel, user.getUsername());
-                                    System.out.println("response message : " + responseMessage);
-                                    System.out.println("New User : " + user);
+                            centerPanel.add(newChatPanel, user.getUsername());
+                            System.out.println("response message : " + responseMessage);
+                            System.out.println("New User : " + user);
+                            SwingUtilities.invokeLater(new Runnable() {
+                                @Override
+                                public void run() {
                                     listOnlineUser.setModel(dlm);
                                 }
-                                else if (responseMessage.getType().equals("Chat")){
-                                    System.out.println("-------------------------------");
-                                    System.out.println("Current User : " + currenUser);
-                                    System.out.println("Received" );
-                                    System.out.println(responseMessage);
-                                    System.out.println("-------------------------------");
-                                    //Bước 1 : Tìm FromClientSocket
-                                    ClientSocket fromClientSocket = responseMessage.getFromUser();
-                                    //Bước 2 : Chọn phòng ChatPannel trùng với FromClientSocket
-                                    for (ChatPanel chatRoom : chatPanelList)
-                                        if (chatRoom.getToUser().getUsername().equals(fromClientSocket.getUsername()))
-                                            chatRoom.setMessage(responseMessage.getMessage());
+                            });
+                        }
+                        else if (responseMessage.getType().equals("Chat") || responseMessage.getType().equals("File")){
+                            System.out.println("-------------------------------");
+                            System.out.println("Current User : " + currenUser);
+                            System.out.println("Received" );
+                            System.out.println(msg);
+                            System.out.println("-------------------------------");
+                            //Bước 1 : Tìm FromClientSocket
+                            ClientSocket fromClientSocket = responseMessage.getFromUser();
+                            //Bước 2 : Chọn phòng ChatPannel trùng với FromClientSocket
+                            for (ChatPanel chatRoom : chatPanelList)
+                                if (chatRoom.getToUser().getUsername().equals(fromClientSocket.getUsername())) {
+                                    if (responseMessage.getType().equals("Chat"))
+                                        chatRoom.setMessage(responseMessage.getMessage());
+                                    else {
+                                        chatRoom.setFile();
+                                    }
                                 }
-                            }
-                        });
-
+                        }
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("Something error");
                 }
             }
         });

@@ -11,6 +11,7 @@ import com.company.Server.utils.FileManager;
 import com.company.Server.utils.ManageUser;
 import com.google.gson.Gson;
 
+import javax.swing.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -97,6 +98,7 @@ public class TCP_Server {
                                         BufferedWriter bufferedWriter = bw;
                                         ClientSocket clientSocket = cl;
                                         ResponseMessage responseMessageFirst = new ResponseMessage();
+                                        Socket socket = s;
 
                                         // Take care about Type and Status on Response Message
                                         while (true){
@@ -154,27 +156,67 @@ public class TCP_Server {
                                             bufferedWriter1.flush();
                                         }
 
-                                        // Listen to Send chat
+                                        // Listen to Send chat or Send File
                                         while (true){
+                                            //Step 1 : Get message from user
                                             String msg = bufferedReader.readLine();
                                             ResponseMessage responseMessage = gson.fromJson(msg, ResponseMessage.class);
-
-                                            //Get MSG and ClientSocket
                                             ClientSocket_ClientSide clientReceived = responseMessage.getToUser();
 
-                                            System.out.println(clientReceived);
-                                            for (ClientSocket user : userOnline) {
-                                                System.out.println("-------------------------");
-                                                System.out.println("Server-Side : ");
-                                                System.out.println(user.getUsername() + "-" + user.getSocket().getPort());
-                                                System.out.println("-------------------------");
-                                                if (clientReceived.getPort() == user.getSocket().getPort()) {
-                                                    BufferedWriter bufferWriterUser = new BufferedWriter(new OutputStreamWriter(user.getSocket().getOutputStream()));
-                                                    bufferWriterUser.write(msg);
-                                                    bufferWriterUser.newLine();
-                                                    bufferWriterUser.flush();
+                                            //Step 2 : Check it is Message or file
+                                            if (responseMessage.getType().equals("Chat")){
+                                                //Get MSG and ClientSocket
+
+                                                System.out.println(clientReceived);
+                                                for (ClientSocket user : userOnline) {
+                                                    System.out.println("-------------------------");
+                                                    System.out.println("Server-Side : ");
+                                                    System.out.println(user.getUsername() + "-" + user.getSocket().getPort());
+                                                    System.out.println("-------------------------");
+                                                    if (clientReceived.getPort() == user.getSocket().getPort()) {
+                                                        BufferedWriter bufferWriterUser = new BufferedWriter(new OutputStreamWriter(user.getSocket().getOutputStream()));
+                                                        bufferWriterUser.write(msg);
+                                                        bufferWriterUser.newLine();
+                                                        bufferWriterUser.flush();
+                                                    }
                                                 }
                                             }
+                                            else{
+                                                DataInputStream dis = new DataInputStream(socket.getInputStream());
+                                                //Get name Length File
+                                                int fileNameLength = dis.readInt();
+                                                byte[] fileNameBytes = new byte[fileNameLength];
+                                                dis.readFully(fileNameBytes, 0, fileNameLength);
+
+                                                int fileContentLength = dis.readInt();
+                                                byte[] fileContentBytes = new byte[fileContentLength];
+                                                dis.readFully(fileContentBytes, 0, fileContentLength);
+                                                //Send To client
+
+                                                for (ClientSocket user : userOnline) {
+                                                    if (clientReceived.getPort() == user.getSocket().getPort()) {
+                                                        //Send response message
+                                                        BufferedWriter bufferWriterUser = new BufferedWriter(new OutputStreamWriter(user.getSocket().getOutputStream()));
+                                                        bufferWriterUser.write(msg);
+                                                        bufferWriterUser.newLine();
+                                                        bufferWriterUser.flush();
+
+                                                        //Send File
+                                                        DataOutputStream dos = new DataOutputStream(user.getSocket().getOutputStream());
+                                                        System.out.println("------------------------------------------------");
+                                                        System.out.println("Server - Side");
+                                                        System.out.println(user.getSocket().getPort());
+                                                        System.out.println("File Name Length : " + fileNameLength);
+                                                        System.out.println("------------------------------------------------");
+                                                        dos.writeInt(fileNameLength);
+                                                        dos.write(fileNameBytes);
+
+                                                        dos.writeInt(fileContentLength);
+                                                        dos.write(fileContentBytes);
+                                                    }
+                                                }
+                                            }
+
                                         }
                                     } catch (IOException e) {
                                         e.printStackTrace();

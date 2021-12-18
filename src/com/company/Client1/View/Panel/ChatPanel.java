@@ -141,6 +141,58 @@ public class ChatPanel extends javax.swing.JPanel {
 
     private void sendBtnActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
+        Gson gson = new Gson();
+        //Step 1 : Get File
+        File fileToSend;
+        JFileChooser jFileChooser = new JFileChooser();
+        jFileChooser.setDialogTitle("Choose a file to send");
+
+        if (jFileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION){
+            fileToSend = jFileChooser.getSelectedFile();
+
+            //Step 2 : Initialize Response Message
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setType("File");
+            responseMessage.setToUser(toUser);
+            responseMessage.setFromUser(new ClientSocket(currentSocket.getLocalPort(), currentUser));
+
+            String msgResponse = gson.toJson(responseMessage);
+
+            //Step 3 : Send msgResponse
+            try {
+                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(currentSocket.getOutputStream()));
+                bw.write(msgResponse);
+                bw.newLine();
+                bw.flush();
+
+                //Step 4 : Read File
+                FileInputStream fis = new FileInputStream(fileToSend.getAbsoluteFile());
+                String fileName = fileToSend.getName();
+
+                //Convert to byte[]
+                //Name File
+                byte[] fileNameBytes = fileName.getBytes();
+
+                //Content File
+                byte[] fileContentBytes = new byte[(int)fileToSend.length()];
+                fis.read(fileContentBytes);
+
+                DataOutputStream dos = new DataOutputStream(currentSocket.getOutputStream());
+
+                //Step 5 : Send File
+                //Send fileName
+                dos.writeInt(fileNameBytes.length);
+                dos.write(fileNameBytes);
+
+                //Send file Content
+                dos.writeInt(fileContentBytes.length);
+                dos.write(fileContentBytes);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 
     private void sendBtn1ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -192,15 +244,60 @@ public class ChatPanel extends javax.swing.JPanel {
     }
 
     public void setMessage(String message) {
-        Document doc = jTextPane1.getDocument();
-        String username = toUser.getUsername() + "\n";
-        String newMessage = message + "\n";
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                Document doc = jTextPane1.getDocument();
+                String username = toUser.getUsername() + "\n";
+                String newMessage = message + "\n";
+                try {
+                    doc.insertString(doc.getLength(), username, null);
+                    doc.insertString(doc.getLength(), newMessage, null);
+                } catch (BadLocationException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void setFile(){
+        //Find file Name
         try {
-            doc.insertString(doc.getLength(), username, null);
-            doc.insertString(doc.getLength(), newMessage, null);
-        } catch (BadLocationException e) {
+            //Get FileNameLength
+            System.out.println("Before");
+            DataInputStream dis = new DataInputStream(currentSocket.getInputStream());
+            int fileNameLength = dis.readInt();
+            System.out.println("File Name Length : " + fileNameLength);
+
+            byte[] fileNameBytes = new byte[fileNameLength];
+            dis.readFully(fileNameBytes, 0, fileNameLength);
+
+            String fileName = new String(fileNameBytes);
+            System.out.println("FileName : " + fileName);
+            //        Show dialog
+            int result = JOptionPane.showConfirmDialog(null,
+                    "Do you want to receive file : " + fileName + " from " + toUser.getUsername(),
+                    "Authenticate",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
+
+            if (result == JOptionPane.YES_OPTION){
+                //Get content Length File
+                int fileContentLength = dis.readInt();
+                byte[] fileContentBytes = new byte[fileContentLength];
+                dis.readFully(fileContentBytes, 0, fileContentLength);
+
+                //Write file
+                File fileToDownload = new File(fileName);
+                FileOutputStream fos = new FileOutputStream(fileToDownload);
+                fos.write(fileContentBytes);
+                fos.close();
+            }
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
     // Variables declaration - do not modify
