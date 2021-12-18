@@ -47,6 +47,11 @@ public class Home extends javax.swing.JFrame implements ActionListener {
                     while(true){
                         String msg = br.readLine();
                         ResponseMessage responseMessage = gson.fromJson(msg, ResponseMessage.class);
+                        System.out.println("-------------------------------");
+                        System.out.println("Current User : " + currenUser);
+                        System.out.println("Received" );
+                        System.out.println(msg);
+                        System.out.println("-------------------------------");
                         if (responseMessage.getType().equals("NewUser")){
                             ClientSocket user = responseMessage.getNewUser();
                             dlm.addElement(user.getUsername());
@@ -54,12 +59,11 @@ public class Home extends javax.swing.JFrame implements ActionListener {
                             ChatPanel newChatPanel = new ChatPanel(user, currentSocket, currenUser);
                             chatPanelList.add(newChatPanel);
 
-                            centerPanel.add(newChatPanel, user.getUsername());
-                            System.out.println("response message : " + responseMessage);
-                            System.out.println("New User : " + user);
+                            centerPanel.add(user.getUsername(), newChatPanel);
                             SwingUtilities.invokeLater(new Runnable() {
                                 @Override
                                 public void run() {
+                                    System.out.println("First Mesage");
                                     listOnlineUser.setModel(dlm);
                                     if (dlm.size() == 1)
                                         cardLayout.show(centerPanel, user.getUsername());
@@ -69,7 +73,7 @@ public class Home extends javax.swing.JFrame implements ActionListener {
                         else if (responseMessage.getType().equals("Delete")){
                             ClientSocket deleteUser = responseMessage.getDeleteUser();
 
-                            int indexRemove = 0;
+                            int indexRemove = -1;
                             for (int i = 0; i < dlm.size(); i++){
                                 String checkuser = dlm.getElementAt(i);
                                 if (checkuser.equals(deleteUser.getUsername())){
@@ -77,19 +81,18 @@ public class Home extends javax.swing.JFrame implements ActionListener {
                                     break;
                                 }
                             }
+                            System.out.println("Dlm.size() = " +  dlm.size());
+                            System.out.println("Index Remove : " + indexRemove);
 
-                            System.out.println("Inedx Remove : " + indexRemove);
-                            dlm.remove(indexRemove);
-                            cardLayout.removeLayoutComponent(chatPanelList.get(indexRemove));
-                            chatPanelList.remove(indexRemove);
+                            if (indexRemove != -1){
+                                dlm.remove(indexRemove);
+                                cardLayout.removeLayoutComponent(chatPanelList.get(indexRemove));
+                                chatPanelList.remove(indexRemove);
+                            }
+
                             listOnlineUser.setModel(dlm);
                         }
                         else if (responseMessage.getType().equals("Chat") || responseMessage.getType().equals("File")){
-                            System.out.println("-------------------------------");
-                            System.out.println("Current User : " + currenUser);
-                            System.out.println("Received" );
-                            System.out.println(msg);
-                            System.out.println("-------------------------------");
                             //Bước 1 : Tìm FromClientSocket
                             ClientSocket fromClientSocket = responseMessage.getFromUser();
                             //Bước 2 : Chọn phòng ChatPannel trùng với FromClientSocket
@@ -172,11 +175,14 @@ public class Home extends javax.swing.JFrame implements ActionListener {
         centerPanel = new JPanel();
         cardLayout = new CardLayout();
         centerPanel.setLayout(cardLayout);
+
+        centerPanel.add("0", new JPanel());
+        cardLayout.show(centerPanel, "0");
         // Initialize ChatPanel for every user online
         for (ClientSocket toUser : onlineUser) {
             ChatPanel chatPanel = new ChatPanel(toUser, currentSocket, currenUser);
             chatPanelList.add(chatPanel);
-            centerPanel.add(chatPanel, toUser.getUsername());
+            centerPanel.add(toUser.getUsername(), chatPanel);
         }
 
         return centerPanel;

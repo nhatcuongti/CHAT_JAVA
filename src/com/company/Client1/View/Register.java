@@ -17,6 +17,7 @@ public class Register extends javax.swing.JFrame {
      * Creates new form Register
      */
     public Register() {
+        tcp_client = new TCP_Client();
         initComponents();
     }
 
@@ -101,9 +102,9 @@ public class Register extends javax.swing.JFrame {
         pack();
     }// </editor-fold>
 
-    public  void register(TCP_Client client, String Username, String Password){
-        BufferedWriter bw = client.getBw();
-        BufferedReader br = client.getBr();
+    public  void register(String Username, String Password){
+        BufferedWriter bw = tcp_client.getBw();
+        BufferedReader br = tcp_client.getBr();
         Gson gson = new Gson();
         //Register
         User user = new User(Username, Password);
@@ -127,7 +128,7 @@ public class Register extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "Your Username is Exists !!", "Register", JOptionPane.ERROR_MESSAGE);
             else{
                 dispose();
-                Home home = new Home(responseMessage.getListUserOnline(), client.getS(), Username);
+                Home home = new Home(responseMessage.getListUserOnline(), tcp_client.getS(), Username);
                 home.setVisible(true);
             }
 
@@ -138,11 +139,10 @@ public class Register extends javax.swing.JFrame {
 
     private void saveBtnActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
-        TCP_Client client = new TCP_Client();
         String username = usernameField.getText();
         String fullName = fullNameField.getText();
         String password = passwordField.getText();
-        register(client, username, password);
+        register(username, password);
     }
 
 
@@ -157,5 +157,6 @@ public class Register extends javax.swing.JFrame {
     private javax.swing.JPasswordField passwordField;
     private javax.swing.JButton saveBtn;
     private javax.swing.JTextField usernameField;
+    private TCP_Client tcp_client;
     // End of variables declaration
 }

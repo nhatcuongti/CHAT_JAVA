@@ -17,6 +17,7 @@ public class Login extends javax.swing.JFrame {
      * Creates new form NewJFrame
      */
     public Login() {
+        tcp_client = new TCP_Client();
         initComponents();
     }
 
@@ -124,9 +125,9 @@ public class Login extends javax.swing.JFrame {
         register.setVisible(true);
     }
 
-    public void login(TCP_Client client, String username, String password){
-        BufferedWriter bw = client.getBw();
-        BufferedReader br = client.getBr();
+    public void login( String username, String password){
+        BufferedWriter bw = tcp_client.getBw();
+        BufferedReader br = tcp_client.getBr();
         Gson gson = new Gson();
         //Register
         User user = new User(username, password);
@@ -147,7 +148,7 @@ public class Login extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "Your Username or Password is invalid !!", "Login", JOptionPane.ERROR_MESSAGE);
             else{
                 dispose();
-                Home home = new Home(responseMessage.getListUserOnline(), client.getS(), username);
+                Home home = new Home(responseMessage.getListUserOnline(), tcp_client.getS(), username);
                 home.setVisible(true);
             }
 
@@ -158,10 +159,9 @@ public class Login extends javax.swing.JFrame {
 
     private void loginBtnActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
-        TCP_Client client = new TCP_Client();
         String username = usernameField.getText();
         String password = passwordField.getText();
-        login(client, username, password);
+        login(username, password);
     }
 
 
